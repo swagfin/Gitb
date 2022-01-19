@@ -1,5 +1,7 @@
 ﻿using CommandLine;
 using System;
+using System.Linq;
+using System.Reflection;
 
 namespace Gitb
 {
@@ -24,6 +26,11 @@ namespace Gitb
         static void Main(string[] args)
         {
             ConsoleX.WriteLine("(-: Git Backup :-)");
+            if (args.Length > 0 && args.Contains("--version"))
+            {
+                ConsoleX.WriteLine($"Current Version: v.{AppVersion}", ConsoleColor.Cyan);
+                Environment.Exit(0);
+            }
             ArgsOptions options = new ArgsOptions();
             //Parse arguments
             Parser.Default.ParseArguments<ArgsOptions>(args).WithParsed(x => { options = x; });
@@ -33,6 +40,14 @@ namespace Gitb
             Console.WriteLine("--- DONE ---");
             if (!options.SkipUserPrompts)
                 Console.ReadLine();
+        }
+
+        public static string AppVersion
+        {
+            get
+            {
+                return Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            }
         }
     }
 }
