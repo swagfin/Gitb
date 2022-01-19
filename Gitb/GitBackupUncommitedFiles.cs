@@ -182,7 +182,7 @@ namespace Gitb
                     $@"cd {GitRepositoryPath}",
                     @"git init",
                     @"git add *",
-                    string.Format(@"git commit -m 'Update Package {0}'", versionFileName),
+                    string.Format("git commit -m \"Update Package {0}\"", versionFileName),
                     @"git push"
                 };
 
