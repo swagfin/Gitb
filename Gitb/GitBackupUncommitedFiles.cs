@@ -32,6 +32,8 @@ namespace Gitb
             }
 
         }
+        public bool SkipConfirmation { get; set; } = false;
+        public bool SkipCompression { get; set; } = false;
 
         public GitBackupUncommitedFiles(string[] args)
         {
@@ -43,6 +45,10 @@ namespace Gitb
             GitRepositoryPath = GitRepositoryPath.Replace("Gitb\\bin\\Debug\\", string.Empty);
 #endif
 
+            if (args.Contains("skip-confirmation"))
+                this.SkipConfirmation = true;
+            if (args.Contains("skip-compression"))
+                this.SkipCompression = true;
         }
 
         public void StartBackup()
@@ -50,17 +56,21 @@ namespace Gitb
             try
             {
                 GetAffectedFiles();
-
+                //Clean up
+                GitAffectedFilesList = GitAffectedFilesList.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
                 if (GitAffectedFilesList.Count >= 1)
                 {
                     CurrentBranch = CmdRunCommands.RunCommands(new List<string> { GitRepositoryPath.Substring(0, 2), $@"cd {GitRepositoryPath}", @"git branch --show-current" });
 
-                    ConsoleX.WriteLine($"Discovered {GitAffectedFilesList.Count} added/modified file(s) proceed? Y/N", ConsoleColor.Green);
-                    bool confirmed = ConsoleX.ReadLineYesNoConfirmed();
-                    if (!confirmed)
+                    if (!this.SkipConfirmation)
                     {
-                        ConsoleX.WriteLine("Task Cancelled", ConsoleColor.Yellow);
-                        Environment.Exit(0);
+                        ConsoleX.WriteLine($"Discovered {GitAffectedFilesList.Count} added/modified file(s) proceed? Y/N", ConsoleColor.Green);
+                        bool confirmed = ConsoleX.ReadLineYesNoConfirmed();
+                        if (!confirmed)
+                        {
+                            ConsoleX.WriteLine("Task Cancelled", ConsoleColor.Yellow);
+                            Environment.Exit(0);
+                        }
                     }
                     //Proceed
                     BackupFiles();
