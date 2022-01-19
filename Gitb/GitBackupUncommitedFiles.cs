@@ -9,8 +9,6 @@ namespace Gitb
     {
         public List<string> GitAffectedFilesList = new List<string>();
 
-        public string GitRepositoryName { get; set; }
-
         public string _GitRepositoryPath { get; set; }
 
         public string CurrentBranch { get; set; }
@@ -31,7 +29,6 @@ namespace Gitb
             set
             {
                 _GitRepositoryPath = value;
-                GitRepositoryName = _GitRepositoryPath.Split('\\').Last();
             }
 
         }
@@ -41,10 +38,11 @@ namespace Gitb
             if (args.Contains("p"))
                 GitRepositoryPath = args.FirstOrDefault(x => x.Equals("p", StringComparison.OrdinalIgnoreCase));
             else
-            {
-                string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                GitRepositoryPath = Directory.GetDirectoryRoot(currentDirectory);
-            }
+                GitRepositoryPath = AppDomain.CurrentDomain.BaseDirectory;
+#if DEBUG
+            GitRepositoryPath = GitRepositoryPath.Replace("Gitb\\bin\\Debug\\", string.Empty);
+#endif
+
         }
 
         public void StartBackup()
@@ -57,7 +55,7 @@ namespace Gitb
                 {
                     CurrentBranch = CmdRunCommands.RunCommands(new List<string> { GitRepositoryPath.Substring(0, 2), $@"cd {GitRepositoryPath}", @"git branch --show-current" });
 
-                    ConsoleX.WriteLine($"Discovered {GitAffectedFilesList.Count} added/modified file(s) proceed?", ConsoleColor.Green);
+                    ConsoleX.WriteLine($"Discovered {GitAffectedFilesList.Count} added/modified file(s) proceed? Y/N", ConsoleColor.Green);
                     bool confirmed = ConsoleX.ReadLineYesNoConfirmed();
                     if (!confirmed)
                     {
@@ -109,7 +107,6 @@ namespace Gitb
         {
 
             GitAffectedFilesList = GitAffectedFilesList.Select(s => $@"{GitRepositoryPath}\{s.Replace("/", "\\")}").ToList();
-            List<string> gitModifiedFilesAbsolutePath = new List<string>();
             //Check Version
             int currentVersion = 0;
             string versionNoFile = $"{AppDomain.CurrentDomain.BaseDirectory}\\current-version.txt";
@@ -125,25 +122,21 @@ namespace Gitb
             //Auto Increase new Version
             currentVersion++;
             string versionFileName = $"update_v{currentVersion}";
+            string directory = $"{AppDomain.CurrentDomain.BaseDirectory}\\Updates\\{versionFileName}";
+            ConsoleX.WriteLine("Preparing directory....");
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, true);
+            //Create Directory
+            Directory.CreateDirectory(directory);
             ConsoleX.WriteLine("Backing up uncommitted files....");
 
-            foreach (var gitModifiedFilePath in GitAffectedFilesList)
-            {
-                List<string> elements = gitModifiedFilePath.Split('\\').ToList();
-                elements.RemoveAt(elements.Count - 1);
-                gitModifiedFilesAbsolutePath.Add(string.Join("\\", elements).Replace(GitRepositoryName, $"\\Updates\\{versionFileName}]\\"));
-            }
-
             List<string> copyCommands = new List<string>();
-            if (GitAffectedFilesList.Count == gitModifiedFilesAbsolutePath.Count)
+            foreach (string affectedFilePath in GitAffectedFilesList)
             {
-                for (int i = 0; i < GitAffectedFilesList.Count; i++)
-                {
-                    copyCommands.Add($"xcopy \"{GitAffectedFilesList[i]}\" \"{gitModifiedFilesAbsolutePath[i]}\" ");
-                }
-
-                CmdRunCommands.RunCommands(copyCommands);
+                ConsoleX.WriteLine($"Backing up: {affectedFilePath}");
+                copyCommands.Add($"xcopy \"{affectedFilePath}\" \"{directory}\" ");
             }
+            CmdRunCommands.RunCommands(copyCommands);
 
             ConsoleX.WriteLine($"Copied Successfully :-)");
         }

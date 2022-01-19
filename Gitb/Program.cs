@@ -11,6 +11,8 @@ namespace Gitb
             GitBackupUncommitedFiles backupModifiedGitFiles = new GitBackupUncommitedFiles(args);
             //Start Backup
             backupModifiedGitFiles.StartBackup();
+            Console.WriteLine("...Terminated....");
+            Console.ReadLine();
         }
     }
 }
