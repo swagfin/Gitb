@@ -52,7 +52,6 @@
   <ItemGroup>
     <Compile Include="CmdRunCommands.cs" />
     <Compile Include="GitBackupUncommitedFiles.cs" />
-    <Compile Include="ParserStateAttribute.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ConsoleX.cs" />

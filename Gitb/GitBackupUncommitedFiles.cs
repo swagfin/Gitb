@@ -65,7 +65,10 @@ namespace Gitb
                         ConsoleX.WriteLine($"Discovered {GitAffectedFilesList.Count} added/modified file(s) proceed? Y/N", ConsoleColor.Green);
                         bool confirmed = ConsoleX.ReadLineYesNoConfirmed();
                         if (!confirmed)
+                        {
                             ConsoleX.WriteLine("Task Cancelled", ConsoleColor.Yellow);
+                            return;
+                        }
                     }
                     //Proceed
                     BackupFiles();
@@ -161,6 +164,33 @@ namespace Gitb
             if (Directory.Exists(directory))
                 Directory.Delete(directory, true);
             ConsoleX.WriteLine($"Backup Successfully | Version v.{currentVersion} :-)", ConsoleColor.Green);
+
+            if (!this.SkipConfirmation)
+            {
+                ConsoleX.WriteLine($"Do you want also to commit the changes to Git?  {GitAffectedFilesList.Count} added/modified file(s) will be committed ? Y/N", ConsoleColor.Cyan);
+                bool confirmed = ConsoleX.ReadLineYesNoConfirmed();
+                if (!confirmed)
+                {
+                    ConsoleX.WriteLine("Task Cancelled", ConsoleColor.Yellow);
+                    return;
+                }
+                //Committing
+                ConsoleX.WriteLine("Git Committing Changes.....", ConsoleColor.Cyan);
+                var gitExecCommands = new List<string>
+                {
+                    GitRepositoryPath.Substring(0, 2),
+                    $@"cd {GitRepositoryPath}",
+                    @"git init",
+                    @"git add *",
+                    string.Format(@"git commit -m 'Update Package {0}'", versionFileName),
+                    @"git push"
+                };
+
+                CmdRunCommands.RunCommands(gitExecCommands);
+                ConsoleX.WriteLine("Git Commit Success.....", ConsoleColor.Cyan);
+
+            }
+
         }
     }
 }
