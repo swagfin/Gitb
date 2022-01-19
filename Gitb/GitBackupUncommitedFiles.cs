@@ -43,7 +43,7 @@ namespace Gitb
             this.SkipCompression = args.SkipCompression;
             this.SkipConfirmation = args.SkipUserPrompts;
             this.VersionFile = string.IsNullOrWhiteSpace(args.VersionFile) ? "current-version.html" : args.VersionFile.Trim();
-            this.GitRepositoryPath = string.IsNullOrEmpty(args.GitRepositoryPath) ? AppDomain.CurrentDomain.BaseDirectory : args.GitRepositoryPath;
+            this.GitRepositoryPath = string.IsNullOrEmpty(args.GitRepositoryPath) ? AssemblyDirectory : args.GitRepositoryPath;
 #if DEBUG
             this.GitRepositoryPath = GitRepositoryPath.Replace("Gitb\\bin\\Debug\\", string.Empty);
 #endif
@@ -115,7 +115,7 @@ namespace Gitb
             GitAffectedFilesList = GitAffectedFilesList.Select(s => $@"{GitRepositoryPath}\{s.Replace("/", "\\")}").ToList();
             //Check Version
             int currentVersion = 0;
-            string versionNoFile = $"{AppDomain.CurrentDomain.BaseDirectory}\\{this.VersionFile}";
+            string versionNoFile = $"{AssemblyDirectory}\\{this.VersionFile}";
             //Check Last Version
             if (!File.Exists(versionNoFile))
                 File.WriteAllText(versionNoFile, $"{currentVersion}");
@@ -129,7 +129,7 @@ namespace Gitb
             currentVersion++;
             ConsoleX.WriteLine($"-------- Preparing version v.{currentVersion} --------", ConsoleColor.Gray);
             string versionFileName = $"update_v{currentVersion}";
-            string directory = $"{AppDomain.CurrentDomain.BaseDirectory}\\Updates\\{versionFileName}";
+            string directory = $"{AssemblyDirectory}\\Updates\\{versionFileName}";
             string zipFileSave = $"{directory}.zip";
 
             //Proceed

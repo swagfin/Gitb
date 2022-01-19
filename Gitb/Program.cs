@@ -47,5 +47,12 @@ namespace Gitb
                 return Assembly.GetExecutingAssembly().GetName().Version.ToString();
             }
         }
+        public static string AssemblyDirectory
+        {
+            get
+            {
+                return Environment.CurrentDirectory;
+            }
+        }
     }
 }
