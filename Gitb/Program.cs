@@ -12,7 +12,8 @@ namespace Gitb
             //Start Backup
             backupModifiedGitFiles.StartBackup();
             Console.WriteLine("--- DONE ---");
-            Console.ReadLine();
+            if (args.Length == 0)
+                Console.ReadLine();
         }
     }
 }
