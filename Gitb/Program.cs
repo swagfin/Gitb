@@ -38,8 +38,6 @@ namespace Gitb
             //Start Backup
             backupModifiedGitFiles.StartBackup();
             Console.WriteLine("--- DONE ---");
-            if (!options.SkipUserPrompts)
-                Console.ReadLine();
         }
 
         public static string AppVersion
