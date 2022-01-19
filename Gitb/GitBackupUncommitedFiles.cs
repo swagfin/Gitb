@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace Gitb
 {
@@ -34,15 +35,20 @@ namespace Gitb
         }
         public bool SkipConfirmation { get; set; } = false;
         public bool SkipCompression { get; set; } = false;
+        public string VersionFile { get; set; } = null;
 
         public GitBackupUncommitedFiles(string[] args)
         {
-            if (args.Contains("p"))
-                GitRepositoryPath = args.FirstOrDefault(x => x.Equals("p", StringComparison.OrdinalIgnoreCase));
+            if (args.Contains("git-repo-path"))
+                this.GitRepositoryPath = args.FirstOrDefault(x => x.Equals("git-repo-path", StringComparison.OrdinalIgnoreCase));
             else
                 GitRepositoryPath = AppDomain.CurrentDomain.BaseDirectory;
+            if (args.Contains("version-file"))
+                this.VersionFile = args.FirstOrDefault(x => x.Equals("version-file", StringComparison.OrdinalIgnoreCase));
+            else
+                this.GitRepositoryPath = AppDomain.CurrentDomain.BaseDirectory;
 #if DEBUG
-            GitRepositoryPath = GitRepositoryPath.Replace("Gitb\\bin\\Debug\\", string.Empty);
+            this.GitRepositoryPath = GitRepositoryPath.Replace("Gitb\\bin\\Debug\\", string.Empty);
 #endif
 
             if (args.Contains("skip-confirmation"))
@@ -67,10 +73,7 @@ namespace Gitb
                         ConsoleX.WriteLine($"Discovered {GitAffectedFilesList.Count} added/modified file(s) proceed? Y/N", ConsoleColor.Green);
                         bool confirmed = ConsoleX.ReadLineYesNoConfirmed();
                         if (!confirmed)
-                        {
                             ConsoleX.WriteLine("Task Cancelled", ConsoleColor.Yellow);
-                            Environment.Exit(0);
-                        }
                     }
                     //Proceed
                     BackupFiles();
@@ -78,13 +81,11 @@ namespace Gitb
                 else
                 {
                     ConsoleX.WriteLine("No Changed Files", ConsoleColor.Yellow);
-                    Environment.Exit(0);
                 }
             }
             catch (Exception ex)
             {
                 ConsoleX.WriteLine(ex.Message, ConsoleColor.Yellow);
-                Environment.Exit(0);
             }
         }
 
@@ -119,7 +120,8 @@ namespace Gitb
             GitAffectedFilesList = GitAffectedFilesList.Select(s => $@"{GitRepositoryPath}\{s.Replace("/", "\\")}").ToList();
             //Check Version
             int currentVersion = 0;
-            string versionNoFile = $"{AppDomain.CurrentDomain.BaseDirectory}\\current-version.txt";
+            this.VersionFile = string.IsNullOrWhiteSpace(this.VersionFile) ? "current-version.html" : this.VersionFile.Trim();
+            string versionNoFile = $"{AppDomain.CurrentDomain.BaseDirectory}\\{this.VersionFile}";
             //Check Last Version
             if (!File.Exists(versionNoFile))
                 File.WriteAllText(versionNoFile, $"{currentVersion}");
@@ -131,8 +133,12 @@ namespace Gitb
             }
             //Auto Increase new Version
             currentVersion++;
+            ConsoleX.WriteLine($"-------- Preparing version v.{currentVersion} --------", ConsoleColor.Gray);
             string versionFileName = $"update_v{currentVersion}";
             string directory = $"{AppDomain.CurrentDomain.BaseDirectory}\\Updates\\{versionFileName}";
+            string zipFileSave = $"{directory}.zip";
+
+            //Proceed
             ConsoleX.WriteLine("Preparing directory....");
             if (Directory.Exists(directory))
                 Directory.Delete(directory, true);
@@ -147,8 +153,23 @@ namespace Gitb
                 copyCommands.Add($"xcopy \"{affectedFilePath}\" \"{directory}\" ");
             }
             CmdRunCommands.RunCommands(copyCommands);
+            //#Zipping
+            ConsoleX.WriteLine("Compressing changed files.....", ConsoleColor.Cyan);
+            ICSharpCode.SharpZipLib.Zip.FastZip z = new ICSharpCode.SharpZipLib.Zip.FastZip();
+            z.CreateEmptyDirectories = true;
+            z.CompressionLevel = ICSharpCode.SharpZipLib.Zip.Compression.Deflater.CompressionLevel.BEST_COMPRESSION;
+            z.CreateZip(zipFileSave, directory, true, string.Empty);
+            ConsoleX.WriteLine($"Compression Success, Zip file: {zipFileSave}", ConsoleColor.Cyan);
 
-            ConsoleX.WriteLine($"Copied Successfully :-)");
+            //Update Version
+            ConsoleX.WriteLine("Updating version File....");
+            File.WriteAllText(versionNoFile, $"{currentVersion}");
+            //Proceed
+            ConsoleX.WriteLine("Cleaning up....");
+            Thread.Sleep(1500); //allow time for Zip to release file
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, true);
+            ConsoleX.WriteLine($"Backup Successfully | Version v.{currentVersion} :-)", ConsoleColor.Green);
         }
     }
 }
