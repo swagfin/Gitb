@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using static Gitb.Program;
 
 namespace Gitb
 {
@@ -33,28 +34,19 @@ namespace Gitb
             }
 
         }
-        public bool SkipConfirmation { get; set; } = false;
-        public bool SkipCompression { get; set; } = false;
-        public string VersionFile { get; set; } = null;
+        public bool SkipConfirmation { get; private set; } = false;
+        public bool SkipCompression { get; private set; } = false;
+        public string VersionFile { get; private set; } = null;
 
-        public GitBackupUncommitedFiles(string[] args)
+        public GitBackupUncommitedFiles(ArgsOptions args)
         {
-            if (args.Contains("git-repo-path"))
-                this.GitRepositoryPath = args.FirstOrDefault(x => x.Equals("git-repo-path", StringComparison.OrdinalIgnoreCase));
-            else
-                GitRepositoryPath = AppDomain.CurrentDomain.BaseDirectory;
-            if (args.Contains("version-file"))
-                this.VersionFile = args.FirstOrDefault(x => x.Equals("version-file", StringComparison.OrdinalIgnoreCase));
-            else
-                this.GitRepositoryPath = AppDomain.CurrentDomain.BaseDirectory;
+            this.SkipCompression = args.SkipCompression;
+            this.SkipConfirmation = args.SkipUserPrompts;
+            this.VersionFile = string.IsNullOrWhiteSpace(args.VersionFile) ? "current-version.html" : args.VersionFile.Trim();
+            this.GitRepositoryPath = string.IsNullOrEmpty(args.GitRepositoryPath) ? AppDomain.CurrentDomain.BaseDirectory : args.GitRepositoryPath;
 #if DEBUG
             this.GitRepositoryPath = GitRepositoryPath.Replace("Gitb\\bin\\Debug\\", string.Empty);
 #endif
-
-            if (args.Contains("skip-confirmation"))
-                this.SkipConfirmation = true;
-            if (args.Contains("skip-compression"))
-                this.SkipCompression = true;
         }
 
         public void StartBackup()
@@ -120,7 +112,6 @@ namespace Gitb
             GitAffectedFilesList = GitAffectedFilesList.Select(s => $@"{GitRepositoryPath}\{s.Replace("/", "\\")}").ToList();
             //Check Version
             int currentVersion = 0;
-            this.VersionFile = string.IsNullOrWhiteSpace(this.VersionFile) ? "current-version.html" : this.VersionFile.Trim();
             string versionNoFile = $"{AppDomain.CurrentDomain.BaseDirectory}\\{this.VersionFile}";
             //Check Last Version
             if (!File.Exists(versionNoFile))
