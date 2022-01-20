@@ -42,7 +42,7 @@ namespace Gitb
         {
             this.SkipCompression = args.SkipCompression;
             this.SkipConfirmation = args.SkipUserPrompts;
-            this.VersionFile = string.IsNullOrWhiteSpace(args.VersionFile) ? "current-version.html" : args.VersionFile.Trim();
+            this.VersionFile = string.IsNullOrWhiteSpace(args.VersionFile) ? "SystemVersion.html" : args.VersionFile.Trim();
             this.GitRepositoryPath = string.IsNullOrEmpty(args.GitRepositoryPath) ? AssemblyDirectory : args.GitRepositoryPath;
 #if DEBUG
             this.GitRepositoryPath = GitRepositoryPath.Replace("Gitb\\bin\\Debug\\", string.Empty);
