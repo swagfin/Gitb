@@ -156,7 +156,10 @@ namespace Gitb
             foreach (string affectedFilePath in GitAffectedFilesList)
             {
                 ConsoleX.WriteLine($"Backing up: {affectedFilePath}");
-                copyCommands.Add($"xcopy \"{affectedFilePath}\" \"{directory}\" ");
+
+                string affectedDirectory = Path.GetDirectoryName(affectedFilePath.Replace(GitRepositoryPath, string.Empty));
+                string copyDir = $"{directory}\\{affectedDirectory}\\";
+                copyCommands.Add($"xcopy \"{affectedFilePath}\" \"{copyDir}\" ");
             }
             CmdRunCommands.RunCommands(copyCommands);
             //#Zipping
