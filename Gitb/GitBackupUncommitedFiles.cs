@@ -39,7 +39,7 @@ namespace Gitb
         public bool SkipConfirmation { get; private set; } = false;
         public bool SkipCompression { get; private set; } = false;
         public string VersionFile { get; private set; } = null;
-        public bool ExcludeVersionFiles { get; private set; } = false;
+        public bool ExcludeVersionFiles { get; private set; } = true;
 
         public GitBackupUncommitedFiles(ArgsOptions args)
         {
@@ -57,7 +57,7 @@ namespace Gitb
                 GetAffectedFiles();
                 //Clean up
                 GitAffectedFilesList = GitAffectedFilesList.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
-                if (!ExcludeVersionFiles)
+                if (ExcludeVersionFiles)
                 {
                     string versionFileExtension = Path.GetExtension(VersionFile);
                     string versionNameWithoutExtension = this.VersionFile;

@@ -18,8 +18,8 @@ namespace Gitb
             [Option('v', "version-file", Required = false, HelpText = "Backup Versioning File, used to save last version number")]
             public string VersionFile { get; set; } = null;
 
-            [Option('x', "exclude-version-files", Required = false, HelpText = "Exclude Version Files from Backup and Compression")]
-            public bool ExcludeVersionFiles { get; set; } = false;
+            [Option('x', "exclude-version-files", Required = false, HelpText = "Exclude Version Files from Backup and Compression, Default true (will not include VersionFiles to backup)")]
+            public bool ExcludeVersionFiles { get; set; } = true;
 
             [Option('u', "skip-user-prompts", Required = false, HelpText = "Skip User Prompts and Confirmation Y/N")]
             public bool SkipUserPrompts { get; set; } = false;
