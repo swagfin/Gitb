@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using static Gitb.Program;
 
@@ -34,9 +35,11 @@ namespace Gitb
             }
 
         }
+
         public bool SkipConfirmation { get; private set; } = false;
         public bool SkipCompression { get; private set; } = false;
         public string VersionFile { get; private set; } = null;
+        public bool ExcludeVersionFiles { get; private set; } = false;
 
         public GitBackupUncommitedFiles(ArgsOptions args)
         {
@@ -44,9 +47,7 @@ namespace Gitb
             this.SkipConfirmation = args.SkipUserPrompts;
             this.VersionFile = string.IsNullOrWhiteSpace(args.VersionFile) ? "SystemVersion.html" : args.VersionFile.Trim();
             this.GitRepositoryPath = string.IsNullOrEmpty(args.GitRepositoryPath) ? AssemblyDirectory : args.GitRepositoryPath;
-#if DEBUG
-            this.GitRepositoryPath = GitRepositoryPath.Replace("Gitb\\bin\\Debug\\", string.Empty);
-#endif
+            this.ExcludeVersionFiles = args.ExcludeVersionFiles;
         }
 
         public void StartBackup()
@@ -56,6 +57,17 @@ namespace Gitb
                 GetAffectedFiles();
                 //Clean up
                 GitAffectedFilesList = GitAffectedFilesList.Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+                if (!ExcludeVersionFiles)
+                {
+                    string versionFileExtension = Path.GetExtension(VersionFile);
+                    string versionNameWithoutExtension = this.VersionFile;
+                    int fileExtPos = this.VersionFile.LastIndexOf(".");
+                    if (fileExtPos >= 0)
+                        versionNameWithoutExtension = this.VersionFile.Substring(0, fileExtPos);
+                    //Filter without Version
+                    GitAffectedFilesList = GitAffectedFilesList.Where(x => !Regex.IsMatch(x, string.Format(@"\{0}.*\{1}$", versionNameWithoutExtension, versionFileExtension))).ToList();
+                }
+
                 if (GitAffectedFilesList.Count >= 1)
                 {
                     CurrentBranch = CmdRunCommands.RunCommands(new List<string> { GitRepositoryPath.Substring(0, 2), $@"cd {GitRepositoryPath}", @"git branch --show-current" });
