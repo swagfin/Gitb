@@ -182,11 +182,14 @@ namespace Gitb
                 copyCommands.Add($"xcopy \"{affectedFilePath}\" \"{copyDir}\" ");
             }
             CmdRunCommands.RunCommands(copyCommands);
+            Thread.Sleep(2000);
             //#Zipping
             ConsoleX.WriteLine("Compressing changed files.....", ConsoleColor.Cyan);
-            ICSharpCode.SharpZipLib.Zip.FastZip z = new ICSharpCode.SharpZipLib.Zip.FastZip();
-            z.CreateEmptyDirectories = true;
-            z.CompressionLevel = ICSharpCode.SharpZipLib.Zip.Compression.Deflater.CompressionLevel.BEST_COMPRESSION;
+            ICSharpCode.SharpZipLib.Zip.FastZip z = new ICSharpCode.SharpZipLib.Zip.FastZip
+            {
+                CreateEmptyDirectories = true,
+                CompressionLevel = ICSharpCode.SharpZipLib.Zip.Compression.Deflater.CompressionLevel.BEST_COMPRESSION
+            };
             z.CreateZip(zipFileSave, directory, true, string.Empty);
             ConsoleX.WriteLine($"Compression Success, Zip file: {zipFileSave}", ConsoleColor.Cyan);
 
@@ -195,7 +198,7 @@ namespace Gitb
             File.WriteAllText(versionNoFile, $"{currentVersion}");
             //Proceed
             ConsoleX.WriteLine("Cleaning up....");
-            Thread.Sleep(1500); //allow time for Zip to release file
+            Thread.Sleep(2000); //allow time for Zip to release file
             if (Directory.Exists(directory))
                 Directory.Delete(directory, true);
             ConsoleX.WriteLine($"Backup Successfully | Version v.{currentVersion} :-)", ConsoleColor.Green);
@@ -223,9 +226,7 @@ namespace Gitb
 
                 CmdRunCommands.RunCommands(gitExecCommands);
                 ConsoleX.WriteLine("Git Commit Success.....", ConsoleColor.Cyan);
-
             }
-
         }
     }
 }
