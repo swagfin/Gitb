@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -48,6 +49,25 @@ namespace Gitb
             this.VersionFile = string.IsNullOrWhiteSpace(args.VersionFile) ? "SystemVersion.html" : args.VersionFile.Trim();
             this.GitRepositoryPath = string.IsNullOrEmpty(args.GitRepositoryPath) ? AssemblyDirectory : args.GitRepositoryPath;
             this.ExcludeVersionFiles = args.ExcludeVersionFiles;
+        }
+
+        public bool IsGitInstalled()
+        {
+            try
+            {
+                ProcessStartInfo processInfo = new ProcessStartInfo("git", "--version");
+                processInfo.RedirectStandardOutput = true;
+                processInfo.RedirectStandardError = true;
+                processInfo.UseShellExecute = false;
+                processInfo.CreateNoWindow = true;
+
+                using (Process process = Process.Start(processInfo))
+                {
+                    process.WaitForExit();
+                    return process.ExitCode == 0;
+                }
+            }
+            catch { return false; }
         }
 
         public void StartBackup()

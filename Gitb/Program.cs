@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -28,7 +29,7 @@ namespace Gitb
         [STAThread]
         static void Main(string[] args)
         {
-            ConsoleX.WriteLine("(-: Git Backup :-)");
+            ConsoleX.WriteLine(" ** Git Backup :-)");
             if (args.Length > 0 && args.Contains("--version"))
             {
                 ConsoleX.WriteLine($"Current Version: v.{AppVersion}", ConsoleColor.Cyan);
@@ -38,27 +39,25 @@ namespace Gitb
             //Parse arguments
             Parser.Default.ParseArguments<ArgsOptions>(args).WithParsed(x => { options = x; });
             GitBackupUncommitedFiles backupModifiedGitFiles = new GitBackupUncommitedFiles(options);
-            //Start Backup
-            backupModifiedGitFiles.StartBackup();
-            Console.WriteLine("--- DONE ---");
+
+            //** check git status
+            if (!backupModifiedGitFiles.IsGitInstalled())
+            {
+                ConsoleX.WriteLine("Git is not installed. Opening browser to download...", ConsoleColor.Yellow);
+                Process.Start("https://git-scm.com/");
+            }
+            else
+            {
+                backupModifiedGitFiles.StartBackup();
+                Console.WriteLine("--- DONE ---");
+            }
+
 #if DEBUG
             Console.ReadLine();
 #endif
         }
 
-        public static string AppVersion
-        {
-            get
-            {
-                return Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            }
-        }
-        public static string AssemblyDirectory
-        {
-            get
-            {
-                return Environment.CurrentDirectory;
-            }
-        }
+        public static string AppVersion { get { return Assembly.GetExecutingAssembly().GetName().Version.ToString(); } }
+        public static string AssemblyDirectory { get { return Environment.CurrentDirectory; } }
     }
 }
